@@ -40,7 +40,7 @@ const ElegantWebsite = () => {
             </div>
             <p className="text-base text-slate-500 leading-relaxed max-w-xl">
               A multidisciplinary consultant bridging legal awareness, real estate clarity, and creative intelligence. 
-              I work at the intersection of compliance, negotiation, and narrative—helping individuals and developers move forward with confidence.
+              I work at the intersection of compliance, negotiation, and narrative, helping individuals and developers move forward with confidence.
             </p>
             <p className="text-lg font-medium italic text-[#1a1f2e] border-l-2 border-amber-400 pl-6">
               “Mastering the delicate balance between structure and adaptability.”
