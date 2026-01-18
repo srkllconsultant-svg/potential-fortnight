@@ -1,3 +1,9 @@
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'S.R.K | Legal Liaison & Real Estate Strategist',
+  description: 'Expert consultancy in land legal scrutiny, strategic negotiation, and creative intelligence.',
+}
 import React from 'react';
 import { Scale, PenTool, Phone, Mail, Check, Award, ScrollText, ChevronDown } from 'lucide-react';
 
