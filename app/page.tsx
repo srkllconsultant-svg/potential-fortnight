@@ -10,70 +10,17 @@ import { Scale, PenTool, Phone, Mail, Check, Award, ScrollText, ChevronDown } fr
 const ElegantWebsite = () => {
   return (
     <div className="min-h-screen bg-white text-[#1a1f2e] font-serif selection:bg-amber-100 scroll-smooth">
-      "use client"; // Required for interactivity
-import React, { useState } from 'react';
-import { Menu, X, Landmark, Gavel, ScrollText, Palette, Phone, Mail } from 'lucide-react';
-
-const ElegantWebsite = () => {
-  // 1. Add this state to track if the mobile menu is open
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const navLinks = [
-    { name: 'Approach', href: '#approach' },
-    { name: 'Expertise', href: '#expertise' },
-    { name: 'Creative', href: '#creative' },
-    { name: 'Connect', href: '#connect' },
-  ];
-
-  return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-amber-100">
-      {/* --- STICKY HEADER --- */}
-      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-slate-100">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          
-          {/* Logo Section */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-slate-900 flex items-center justify-center rounded-sm">
-              <span className="text-white font-serif text-xl italic">S</span>
-            </div>
-            <span className="font-serif text-xl tracking-widest font-light hidden sm:block">S.R.K.</span>
-          </div>
-
-          {/* 2. DESKTOP NAVIGATION (Hidden on mobile) */}
+    {/* Navigation */}
+      <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-100">
+        <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+          <img src="/logo.png" alt="S.R.K Logo" className="h-10 w-auto" />
           <div className="hidden md:flex items-center gap-8 text-[11px] tracking-[0.2em] uppercase font-bold">
-            {navLinks.map((link) => (
-              <a key={link.name} href={link.href} className="hover:text-amber-600 transition-colors">
-                {link.name}
-              </a>
-            ))}
+            <a href="#approach" className="hover:text-amber-600 transition-colors">Approach</a>
+            <a href="#expertise" className="hover:text-amber-600 transition-colors">Expertise</a>
+            <a href="#creative" className="hover:text-amber-600 transition-colors">Creative</a>
+            <a href="#connect" className="px-5 py-2.5 bg-[#1a1f2e] text-white hover:bg-amber-700 transition-all">Connect</a>
           </div>
-
-          {/* 3. MOBILE MENU BUTTON (Shows only on mobile) */}
-          <button 
-            className="md:hidden p-2 text-slate-900" 
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
         </div>
-
-        {/* 4. MOBILE DROPDOWN MENU (Animated appearance) */}
-        {isMenuOpen && (
-          <div className="md:hidden bg-white border-b border-slate-100 animate-in fade-in slide-in-from-top-4 duration-300">
-            <div className="flex flex-col p-6 gap-6 text-[12px] tracking-[0.2em] uppercase font-bold">
-              {navLinks.map((link) => (
-                <a 
-                  key={link.name} 
-                  href={link.href} 
-                  onClick={() => setIsMenuOpen(false)} // Close menu when a link is clicked
-                  className="hover:text-amber-600 border-b border-slate-50 pb-2"
-                >
-                  {link.name}
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
       </nav>
 
       {/* Hero Section — Brand Introduction */}
