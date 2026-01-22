@@ -6,10 +6,24 @@ import path from 'path';
 
 export async function POST(req: NextRequest) {
   try {
-    const data = await req.json();
+    const { templateName, userData } = await req.json();
     
-    // 1. Load the template file
-    const templatePath = path.resolve('./lib/templates', 'sale-deed.docx');
+    // 1. Map the friendly name to your actual file system names
+    // Ensures we don't just open any file path for security
+    const fileNameMap: Record<string, string> = {
+      "Sale Deed": "sale-deed.docx",
+      "Agreement of Sale": "agreement-sale.docx",
+      "Lease Deed": "lease-deed.docx",
+      // Add more mappings as you add .docx files to /lib/templates
+    };
+
+    const targetFile = fileNameMap[templateName] || 'default-template.docx';
+    const templatePath = path.resolve('./lib/templates', targetFile);
+
+    if (!fs.existsSync(templatePath)) {
+      return NextResponse.json({ error: 'Template file not found' }, { status: 404 });
+    }
+
     const content = fs.readFileSync(templatePath, 'binary');
 
     // 2. Initialize zip and docxtemplater
@@ -19,41 +33,39 @@ export async function POST(req: NextRequest) {
       linebreaks: true,
     });
 
-    // 3. Flatten the data for the template
-    // This turns [{name: 'John'}] into {name0: 'John'} for Word
-    const templateData: any = {};
-    data.parties.forEach((party: any, index: number) => {
-      Object.keys(party).forEach(key => {
-        templateData[`${key}${index}`] = party[key];
-      });
-    });
-const templateData: any = {
-  ...data.property // This spreads surveyNo, north, south, etc. into the template
-};
+    // 3. Prepare Template Data
+    // We merge the location/currency data with any specific property or party data
+    const finalTemplateData = {
+      ...userData,
+      // If your template uses {STATE}, {COUNTRY}, etc., userData already contains them
+      // If your template uses {DATE}, add it here:
+      TODAY_DATE: new Date().toLocaleDateString('en-IN'),
+    };
 
-data.parties.forEach((party: any, index: number) => {
-  Object.keys(party).forEach(key => {
-    templateData[`${key}${index}`] = party[key];
-  });
-});
     // 4. Render the document
-    doc.render(templateData);
+    try {
+      doc.render(finalTemplateData);
+    } catch (renderError) {
+      console.error("Docxtemplater Render Error:", renderError);
+      return NextResponse.json({ error: 'Error filling template tags' }, { status: 500 });
+    }
 
     const buf = doc.getZip().generate({
       type: 'nodebuffer',
       compression: 'DEFLATE',
     });
 
-    // 5. Return the file
+    // 5. Return the file as a downloadable blob
     return new NextResponse(buf, {
       status: 200,
       headers: {
-        'Content-Disposition': 'attachment; filename=draft.docx',
+        'Content-Disposition': `attachment; filename="${templateName.replace(/\s+/g, '_')}_Draft.docx"`,
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       },
     });
+
   } catch (error) {
-    console.error(error);
+    console.error("Global API Error:", error);
     return NextResponse.json({ error: 'Failed to generate document' }, { status: 500 });
   }
 }
