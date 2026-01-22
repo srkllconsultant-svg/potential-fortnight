@@ -9,12 +9,10 @@ export async function POST(req: NextRequest) {
     const { templateName, userData } = await req.json();
     
     // 1. Map the friendly name to your actual file system names
-    // Ensures we don't just open any file path for security
     const fileNameMap: Record<string, string> = {
       "Sale Deed": "sale-deed.docx",
       "Agreement of Sale": "agreement-sale.docx",
       "Lease Deed": "lease-deed.docx",
-      // Add more mappings as you add .docx files to /lib/templates
     };
 
     const targetFile = fileNameMap[templateName] || 'default-template.docx';
@@ -34,11 +32,8 @@ export async function POST(req: NextRequest) {
     });
 
     // 3. Prepare Template Data
-    // We merge the location/currency data with any specific property or party data
     const finalTemplateData = {
       ...userData,
-      // If your template uses {STATE}, {COUNTRY}, etc., userData already contains them
-      // If your template uses {DATE}, add it here:
       TODAY_DATE: new Date().toLocaleDateString('en-IN'),
     };
 
@@ -56,10 +51,13 @@ export async function POST(req: NextRequest) {
     });
 
     // 5. Return the file as a downloadable blob
-    return new NextResponse(buf, {
+    // FIXED: Wrapped 'buf' (Node Buffer) in 'new Uint8Array()' for Next.js 16 compatibility
+    const safeFileName = (templateName || 'Document').replace(/\s+/g, '_');
+    
+    return new NextResponse(new Uint8Array(buf), {
       status: 200,
       headers: {
-        'Content-Disposition': `attachment; filename="${templateName.replace(/\s+/g, '_')}_Draft.docx"`,
+        'Content-Disposition': `attachment; filename="${safeFileName}_Draft.docx"`,
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       },
     });

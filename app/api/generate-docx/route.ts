@@ -25,7 +25,6 @@ export async function POST(req: NextRequest) {
     });
 
     // 3. Inject Data
-    // 'userData' should be an object like { STATE: "Telangana", BUYER_NAME: "John Doe" }
     doc.render(userData);
 
     // 4. Generate the buffer
@@ -35,7 +34,8 @@ export async function POST(req: NextRequest) {
     });
 
     // 5. Return the file for download
-    return new NextResponse(buf, {
+    // FIXED: Wrapped 'buf' in new Uint8Array() to satisfy TypeScript/Web API standards
+    return new NextResponse(new Uint8Array(buf), {
       status: 200,
       headers: {
         'Content-Disposition': `attachment; filename="${templateName}.docx"`,
