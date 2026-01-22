@@ -15,9 +15,11 @@ const geistMono = Geist_Mono({
 // This replaces the "Create Next App" metadata entirely
 export const metadata: Metadata = {
   title: "S.R.K Strategic | High-Stakes Real Estate Vetting",
-  description: "Professional legal liaisoning, property scrutiny, and asset health indexing. Transform complex land records into actionable intelligence.",
+  description: "Professional legal liaisoning...",
   icons: {
-    icon: "/favicon.ico", 
+    icon: "/icon.png", // This points to public/icon.png
+    shortcut: "/icon.png",
+    apple: "/icon.png", // For iPhones
   },
 };
 
