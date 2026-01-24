@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import SecurityWrapper from '../components/SecurityWrapper';
 import "./globals.css"; // IMPORTANT: Keep this for your Tailwind styles
 
 const geistSans = Geist({
@@ -31,7 +32,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
+        {/* Everything inside SecurityWrapper is now protected */}
+        <SecurityWrapper>
+          {children}
+        </SecurityWrapper>
       </body>
     </html>
   );
