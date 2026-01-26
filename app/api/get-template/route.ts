@@ -5,36 +5,46 @@ import mammoth from 'mammoth';
 
 export async function POST(req: NextRequest) {
   try {
-    const { templateName } = await req.json();
+    // Receive subType from the frontend
+    const { templateName, subType } = await req.json();
 
-    // 1. Path to your templates folder
-    // Ensure your .docx files are in /public/templates/ or a secure data folder
-    const filePath = path.join(process.cwd(), 'lib/templates', `${templateName}.docx`);
+    // 1. Build the specific filename
+    // If subType is "flat", name becomes "Sale Deed_Flat"
+    // If subType is empty, it remains "Sale Deed"
+    const subSuffix = subType ? `_${subType.charAt(0).toUpperCase() + subType.slice(1)}` : "";
+    const finalFileName = `${templateName}${subSuffix}`;
 
+    // 2. Resolve the file path
+    let filePath = path.join(process.cwd(), 'lib/templates', `${finalFileName}.docx`);
+
+    // Fallback: If "Sale Deed_Flat.docx" doesn't exist, try the generic "Sale Deed.docx"
     if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ success: false, error: "Template file not found." }, { status: 404 });
+      filePath = path.join(process.cwd(), 'lib/templates', `${templateName}.docx`);
     }
 
-    // 2. Read the file into a buffer
+    // Check again if even the fallback exists
+    if (!fs.existsSync(filePath)) {
+      return NextResponse.json({ 
+        success: false, 
+        error: `Template "${finalFileName}" or fallback not found.` 
+      }, { status: 404 });
+    }
+
     const buffer = fs.readFileSync(filePath);
 
-    // 3. Convert .docx to HTML using Mammoth
-    // Mammoth maps Word styles to HTML tags automatically
+    // 3. Convert to HTML
     const result = await mammoth.convertToHtml({ buffer: buffer }, {
       styleMap: [
-        "u => u", // Preserve underlines
+        "u => u",
         "strike => del",
-        "p[style-name='Center'] => p.text-center", // Optional: Map custom word styles
+        "p[style-name='Center'] => p.text-center",
       ]
     });
 
-    const html = result.value; // The generated HTML
-    const messages = result.messages; // Any warnings (useful for debugging)
-
     return NextResponse.json({ 
       success: true, 
-      html: html,
-      warnings: messages 
+      html: result.value,
+      warnings: result.messages 
     });
 
   } catch (error) {
