@@ -158,7 +158,7 @@ const navLinks = [
       <section id="expertise" className="max-w-7xl mx-auto px-10 py-100">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           <ServiceCard icon={<FileSearch size={30} />} title="Legal Scrutiny" desc="Exhaustive verification of link documents and title history." />
-          <ServiceCard icon={<Gavel size={30} />} title="Liaison Support" desc="Direct coordination with authorities to streamline approvals." />
+<Link href="/liaison-support" className="block h-full">          <ServiceCard icon={<Gavel size={30} />} title="Liaison Support" desc="Direct coordination with authorities to streamline approvals." /> </Link>
           <ServiceCard icon={<ScrollText size={30} />} title="Drafting Studio" desc="Professional drafting of Deeds and GPAs based on verified data." isDrafting />
 <div className="relative group p-8 bg-slate-900 rounded-3xl shadow-xl text-white cursor-help overflow-visible">
   {/* THE HEALTH SCORE TOOLTIP */}
@@ -450,10 +450,10 @@ function ProcessStep({ number, title, desc }: { number: string, title: string, d
 
 function ServiceCard({ icon, title, desc, isDrafting = false }: { icon: any, title: string, desc: string, isDrafting?: boolean }) {
   const getStatusMessage = (title: string) => {
-    if (title === "Legal Scrutiny") return "Digital Scrutiny Engine Syncing";
-    if (title === "Liaison Support") return "Liaison Protocol Onboarding";
-    return "Module Under Integration";
-  };
+  if (title === "Legal Scrutiny") return "Digital Scrutiny Engine Syncing";
+  if (title === "Liaison Support") return "Liaison Protocol Active"; // Updated this
+  return "Module Under Integration";
+};
 
   // Define the inner card content exactly as you had it
   const cardInner = (

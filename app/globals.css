@@ -14,18 +14,9 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0a0a0a;    --foreground: #ededed;
   }
 }
-
-@media print {
-  body {
-    display: none !important;
-  }
-}
-
-/* This helps hide content if someone tries to 'Print' to PDF to copy text */
 
 body {
   background: var(--background);
@@ -33,4 +24,48 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* --- SECURITY & PROFESSIONAL PRINT LOGIC --- */
 
+@media print {
+  /* 1. THE LOCKDOWN: Hide everything by default on all pages */
+  body {
+    display: none !important;
+  }
+
+  /* 2. THE EXCEPTION: Only allow printing if 'allow-print' class is present */
+  body.allow-print {
+    display: block !important;
+    background: white !important;
+    color: black !important;
+    overflow: visible !important;
+  }
+
+  @page {
+    margin: 1.5cm;
+  }
+
+  /* 3. PRINT STYLING: Applied only when printing is allowed */
+  body.allow-print header, 
+  body.allow-print footer, 
+  body.allow-print nav,
+  body.allow-print button,
+  body.allow-print .no-print {
+    display: none !important;
+  }
+
+  body.allow-print .max-w-4xl {
+    max-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  body.allow-print h1, 
+  body.allow-print h2, 
+  body.allow-print h3, 
+  body.allow-print p, 
+  body.allow-print strong, 
+  body.allow-print span {
+    color: black !important;
+  }
+}
