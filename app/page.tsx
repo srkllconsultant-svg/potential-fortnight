@@ -44,10 +44,10 @@ const navLinks = [
   ];
 
   const timelineSteps = [
-    { day: "Day 01-02", task: "Initial link verification as per the provided documents." },
-    { day: "Day 03-05", task: "If any shortfall is identified or additional documents are received, the processing timeframe will be extended accordingly." },
-    { day: "Day 06-08", task: "Observations and seeking clarifications based on the identified shortfall" },
-    { day: "Day 09-10", task: "Legal Opinion & Final Asset Health Indexing." }
+    { day: "Day 01-02", task: "Initial link verification based on the documents provided by the client." },
+    { day: "Day 03-05", task: "Identification of any shortfall and communication of the same. Based on the receipt of additional documents, the processing timeline will be extended as required." },
+    { day: "Day 06-08", task: "Observations and requests for clarification based on the identified shortfall." },
+    { day: "Day 09-10", task: "Upon receipt of all clarifications and supporting documents, issuance of Document Scrutiny or Legal Opinion, followed by completion of final asset health indexing." }
   ];
 
   const healthScoreMetrics = [
