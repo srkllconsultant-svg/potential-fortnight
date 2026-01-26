@@ -9,14 +9,14 @@ export async function POST(req: NextRequest) {
     const { templateName, userData } = await req.json();
     
     // 1. Map the friendly name to your actual file system names
-    const fileNameMap: Record<string, string> = {
-      "Sale Deed": "sale-deed.docx",
-      "Agreement of Sale": "agreement-sale.docx",
-      "Lease Deed": "lease-deed.docx",
-    };
+    // const fileNameMap: Record<string, string> = {      "Sale Deed": "sale-deed.docx",      "Agreement of Sale": "agreement-sale.docx",       "Lease Deed": "lease-deed.docx",     };
 
-    const targetFile = fileNameMap[templateName] || 'default-template.docx';
-    const templatePath = path.resolve('./lib/templates', targetFile);
+    //const targetFile = fileNameMap[templateName] || 'default-template.docx';
+    //const templatePath = path.resolve('./lib/templates', targetFile);
+const slugify = (text: string) => text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+
+const targetFile = `${slugify(templateName)}.docx`;
+const templatePath = path.resolve('./lib/templates', targetFile);	
 
     if (!fs.existsSync(templatePath)) {
       return NextResponse.json({ error: 'Template file not found' }, { status: 404 });
