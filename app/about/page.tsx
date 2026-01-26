@@ -148,10 +148,10 @@ export default function AboutPage() {
                   <Scale className="text-amber-500" size={24}/> Land Legal Scrutiny
                 </h3>
                 <p className="text-slate-400 text-sm leading-relaxed">
-                  Comprehensive property due diligence designed to identify latent risks before they become capital liabilities. Based on 1954-55 root verification.
+                  Comprehensive property due diligence designed to identify latent risks before they become capital liabilities. Based on provided documents.
                 </p>
                 <div className="grid gap-3 pt-2">
-                  {["Title verification & chain analysis", "Section 22-A Prohibited List checks", "Layout & RERA compliance support"].map((item, i) => (
+                  {["Title verification & chain analysis", "Prohibited List checks", "Layout, Building & RERA compliance support"].map((item, i) => (
                     <div key={i} className="flex items-center gap-3 text-[13px] text-slate-300">
                       <Check size={14} className="text-amber-500"/> {item}
                     </div>
@@ -240,7 +240,7 @@ export default function AboutPage() {
                   Deploying technical precision through automated workflows and architectural drafting to improve efficiency and visual accuracy.
                 </p>
                 <div className="grid gap-3 pt-2">
-                  {["VBA-based process automation", "AutoCAD architectural drafting support", "Photoshop visual systems & layout"].map((item, i) => (
+                  {["VBA-based process automation", "Architectural drafting support", "Visual systems & layout"].map((item, i) => (
                     <div key={i} className="flex items-center gap-3 text-[13px] text-slate-300">
                       <Check size={14} className="text-amber-500"/> {item}
                     </div>
