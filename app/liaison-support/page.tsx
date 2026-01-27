@@ -119,8 +119,8 @@ export default function LiaisonSupportPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {[
                   "NALA Conversions/C.L.U.", "Mutation Proceedings", "Pahani Corrections", 
-                  "Succession/Virasat", "Demarcation (Survey)", "Private Survey"
-                  "Rectification", "Layout/Building Plan Drafting", "Shortfall Analysis", 
+                  "Succession/Virasat", "Demarcation (Survey)", "Private Survey",
+                  "Rectification", "Layout/Building Plan Drafting", "Shortfall Analysis",
                   "Multi-Department NOCs", "Legal Compliance Support", "Coordinatoin with Advocates"
                 ].map((task) => (
                   <div key={task} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-[9px] font-bold text-slate-600 text-center uppercase tracking-widest hover:border-amber-500 transition-all">
