@@ -96,10 +96,10 @@ export default function LiaisonSupportPage() {
               </h3>
               <div className="space-y-10">
                 {[
-                  { level: "District/RDO Level", text: "Collectorate liaison for NALA conversions, large scale land use changes, and assigned land regularization.", icon: <Landmark size={20}/> },
+                  { level: "District/RDO Level", text: "Collectorate liaison for NALA conversions, large scale land use changes, and land regularization.", icon: <Landmark size={20}/> },
                   { level: "Mandal/Tehsil Level", text: "Ground coordination for Mutation proceedings, Pahani corrections, and Succession/Virasat entries.", icon: <Building2 size={20}/> },
-                  { level: "Survey Department", text: "Technical alignment for Demarcation, Sub-division (Phodi), and Village Map rectification.", icon: <Search size={20}/> },
-                  { level: "Technical & Legal", text: "Liaison for Architectural drafting, Layout approvals, and coordination with External Advocates.", icon: <Gavel size={20}/> }
+                  { level: "Survey Department", text: "Technical alignment for Demarcation, Sub-division.", icon: <Search size={20}/> },
+                  { level: "Technical & Legal", text: "Liaison for Architectural drafting, Layout/Building approvals, and coordination with External Advocates.", icon: <Gavel size={20}/> }
                 ].map((item, idx) => (
                   <div key={idx} className="flex gap-6 group text-left">
                     <div className="shrink-0 w-12 h-12 rounded-2xl bg-slate-50 text-amber-600 flex items-center justify-center transition-all group-hover:bg-amber-600 group-hover:text-white shadow-sm">
@@ -118,10 +118,10 @@ export default function LiaisonSupportPage() {
               <h4 className="text-[10px] font-black text-slate-400 mb-8 uppercase tracking-[0.4em] text-center">Core Representative Tasks</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {[
-                  "NALA Conversions", "Mutation Proceedings", "Pahani Corrections", 
-                  "Succession/Virasat", "Demarcation (Survey)", "Sub-division (Phodi)", 
-                  "Village Map Rectification", "Layout Plan Drafting", "Shortfall Analysis", 
-                  "Multi-Department NOCs", "RERA Compliance Support", "Registration & Stamps"
+                  "NALA Conversions/C.L.U.", "Mutation Proceedings", "Pahani Corrections", 
+                  "Succession/Virasat", "Demarcation (Survey)", "Private Survey"
+                  "Rectification", "Layout/Building Plan Drafting", "Shortfall Analysis", 
+                  "Multi-Department NOCs", "Legal Compliance Support", "Coordinatoin with Advocates"
                 ].map((task) => (
                   <div key={task} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-[9px] font-bold text-slate-600 text-center uppercase tracking-widest hover:border-amber-500 transition-all">
                     {task}
