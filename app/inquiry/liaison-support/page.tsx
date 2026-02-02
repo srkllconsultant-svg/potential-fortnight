@@ -291,7 +291,7 @@ export default function LiaisonIntakePage() {
                   </div>
                   <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center transition-all bg-slate-50 border-slate-200 hover:bg-slate-100 cursor-pointer">
                     <Upload className="text-slate-300" size={20} />
-                    <span className="text-[10px] font-bold text-slate-500 uppercase mt-2 text-center">Click to attach Docs<br/>(Max 10MB Total)</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase mt-2 text-center">Click to attach Docs<br/>(Max 5MB Total)</span>
                     <input type="file" multiple ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".pdf,.jpg,.jpeg,.png" />
                   </div>
                   
@@ -388,4 +388,5 @@ export default function LiaisonIntakePage() {
       </div>
     </main>
   );
+
 }
