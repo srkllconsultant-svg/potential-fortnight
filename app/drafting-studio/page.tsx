@@ -170,7 +170,7 @@ const handleDownload = async () => {
       STATE: location.state,
       COUNTRY: location.country,
       CURRENCY: currencySymbol,
-      SUB_TYPE: subType, // Added subType so the Word doc knows which version to build
+      SUB_TYPE: subType, 
     };
 
     const response = await fetch('/api/generate-docx', {
@@ -182,34 +182,39 @@ const handleDownload = async () => {
       }),
     });
 
-    if (!response.ok) throw new Error("Download failed");
+    // 1. Check if the response failed FIRST
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("Server Error Details:", errorData);
+      // Only show the alert if the server actually failed
+      alert(`Could not generate the Word file: ${errorData.error || 'Unknown Error'}`);
+      return; // Stop execution here
+    }
 
-    // 1. Prepare the blob
+    // 2. If it succeeded, get the BLOB (don't call .json())
     const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
     
-    // 2. Create the invisible anchor element
+    // 3. Create the download link
+    const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
 
-    // 3. Generate the CLEAN dynamic file name
-const cleanDocName = selectedDoc.replace(/\s+/g, '_');
-const subName = subType ? `_${subType.toUpperCase()}` : '';
-const timestamp = new Date().toISOString().split('T')[0];
+    const cleanDocName = selectedDoc.replace(/\s+/g, '_');
+    const subName = subType ? `_${subType.charAt(0).toUpperCase() + subType.slice(1)}` : '';
+    const timestamp = new Date().toISOString().split('T')[0];
 
-a.download = `${cleanDocName}${subName}_Draft_${timestamp}.docx`;
+    a.download = `${cleanDocName}${subName}_Draft_${timestamp}.docx`;
 
-    // 4. Trigger the download
     document.body.appendChild(a);
     a.click();
     
-    // 5. Cleanup
+    // 4. Cleanup
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
 
   } catch (err) {
-    console.error(err);
-    alert("Could not generate the Word file.");
+    // This only runs if the network crashes or the code above has a syntax error
+    console.error("Download Error:", err);
   }
 };
 
