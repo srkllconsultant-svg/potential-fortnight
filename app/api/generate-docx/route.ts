@@ -7,44 +7,63 @@ import Docxtemplater from 'docxtemplater';
 export async function POST(req: NextRequest) {
   try {
     const { templateName, userData } = await req.json();
+    const subTypeRaw = userData.SUB_TYPE || '';
 
-    // 1. Load the original .docx file as binary
-    const templatePath = path.join(process.cwd(), 'lib/templates', `${templateName}.docx`);
+    // 1. Generate the expected name (e.g., "Sale Deed_Plot.docx")
+    // This logic capitalizes the first letter to match your "Sale Deed_Plot" files
+    const formattedSubType = subTypeRaw 
+      ? `_${subTypeRaw.charAt(0).toUpperCase() + subTypeRaw.slice(1)}` 
+      : '';
     
+    const fileName = `${templateName}${formattedSubType}.docx`;
+    const templatePath = path.resolve(process.cwd(), 'lib/templates', fileName);
+
+    console.log("Looking for:", fileName);
+
+    // 2. Fallback check: If "Sale Deed_Plot" doesn't exist, try "Sale Deed.docx"
+    let finalPath = templatePath;
     if (!fs.existsSync(templatePath)) {
-      return NextResponse.json({ error: "Template not found" }, { status: 404 });
+      const fallbackName = `${templateName}.docx`;
+      const fallbackPath = path.resolve(process.cwd(), 'lib/templates', fallbackName);
+      
+      if (fs.existsSync(fallbackPath)) {
+        finalPath = fallbackPath;
+      } else {
+        return NextResponse.json({ 
+          error: `File not found: ${fileName}`,
+          details: `Checked lib/templates for both "${fileName}" and "${fallbackName}"`
+        }, { status: 404 });
+      }
     }
 
-    const content = fs.readFileSync(templatePath, "binary");
-
-    // 2. Initialize Zip and Docxtemplater
+    // 3. Process the Document
+    const content = fs.readFileSync(finalPath, "binary");
     const zip = new PizZip(content);
     const doc = new Docxtemplater(zip, {
       paragraphLoop: true,
       linebreaks: true,
     });
 
-    // 3. Inject Data
     doc.render(userData);
 
-    // 4. Generate the buffer
     const buf = doc.getZip().generate({
       type: "nodebuffer",
       compression: "DEFLATE",
     });
 
-    // 5. Return the file for download
-    // FIXED: Wrapped 'buf' in new Uint8Array() to satisfy TypeScript/Web API standards
-    return new NextResponse(new Uint8Array(buf), {
+    const finalBuffer = new Uint8Array(buf);
+
+    return new NextResponse(finalBuffer, {
       status: 200,
       headers: {
-        'Content-Disposition': `attachment; filename="${templateName}.docx"`,
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}"`,
+        'Content-Length': finalBuffer.byteLength.toString(),
       },
     });
 
-  } catch (error) {
-    console.error("DOCX Export Error:", error);
-    return NextResponse.json({ error: "Failed to generate document" }, { status: 500 });
+  } catch (error: any) {
+    console.error("SERVER ERROR:", error);
+    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
   }
 }
