@@ -1,5 +1,6 @@
 "use client";
 
+import imageCompression from 'browser-image-compression';
 import { sendEmail } from '@/app/actions/sendEmail';
 import React, { useState, useRef, useMemo } from 'react';
 import Link from 'next/link';
@@ -8,6 +9,8 @@ import {
   Printer, CheckCircle2, Upload, Mail, Phone,
   CreditCard, MapPin, ClipboardCheck, X, Info, AlertCircle, Trash2
 } from 'lucide-react';
+
+
 
 interface Attachment {
   name: string;
@@ -29,7 +32,7 @@ export default function LiaisonIntakePage() {
   });
   const [agreed, setAgreed] = useState(false);
 
-  const MAX_TOTAL_SIZE_MB = 10;
+  const MAX_TOTAL_SIZE_MB = 5;
   const BYTES_TO_MB = 1024 * 1024;
 
   const totalSizeMB = useMemo(() => {
@@ -53,33 +56,47 @@ export default function LiaisonIntakePage() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
-    let currentTotalBytes = attachments.reduce((acc, f) => acc + f.size, 0);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const selectedFiles = Array.from(e.target.files || []);
+  let currentTotalBytes = attachments.reduce((acc, f) => acc + f.size, 0);
 
-    selectedFiles.forEach(file => {
-      if (file.size > MAX_TOTAL_SIZE_MB * BYTES_TO_MB) {
-        alert(`Rejected: "${file.name}" is too large.`);
-        return;
-      }
-      if (currentTotalBytes + file.size > MAX_TOTAL_SIZE_MB * BYTES_TO_MB) {
-        alert(`Cannot add "${file.name}". Total limit is ${MAX_TOTAL_SIZE_MB}MB.`);
-        return;
-      }
+  for (const file of selectedFiles) {
+    let fileToProcess = file;
 
-      currentTotalBytes += file.size;
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAttachments(prev => [...prev, { 
-          name: file.name, 
-          data: reader.result as string,
-          size: file.size 
-        }]);
-      };
-      reader.readAsDataURL(file);
-    });
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
+    // A. IF IMAGE: Shrink it to save space
+    if (file.type.startsWith('image/')) {
+      try {
+        const options = { maxSizeMB: 0.9, maxWidthOrHeight: 2048, useWebWorker: true };
+        fileToProcess = await imageCompression(file, options);
+      } catch (e) { console.error(e); }
+    } 
+    
+    // B. IF PDF: We can't shrink it easily, so we just check the size
+    // Note: PDF text stays 100% readable because we aren't touching it.
+
+    // YOUR ORIGINAL SIZE CHECKS
+    if (fileToProcess.size > MAX_TOTAL_SIZE_MB * BYTES_TO_MB) {
+      alert(`Rejected: "${file.name}" is too large.`);
+      continue;
+    }
+    if (currentTotalBytes + fileToProcess.size > MAX_TOTAL_SIZE_MB * BYTES_TO_MB) {
+      alert(`Total limit of ${MAX_TOTAL_SIZE_MB}MB reached.`);
+      continue;
+    }
+
+    currentTotalBytes += fileToProcess.size;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAttachments(prev => [...prev, { 
+        name: file.name, 
+        data: reader.result as string, // This is still Base64
+        size: fileToProcess.size 
+      }]);
+    };
+    reader.readAsDataURL(fileToProcess);
+  }
+};
 
   const removeAttachment = (index: number) => {
     setAttachments(prev => prev.filter((_, i) => i !== index));
@@ -100,28 +117,57 @@ export default function LiaisonIntakePage() {
   };
   
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (isOverLimit) return;
+  e.preventDefault();
+  if (isOverLimit) return;
 
-    const readyToSubmit = confirm("Confirm Submission: Proceed with Technical Audit request?");
-    if (!readyToSubmit) return;
+  const readyToSubmit = confirm("Confirm Submission: Proceed with Technical Audit request?");
+  if (!readyToSubmit) return;
+  
+  
+  setIsSending(true);
+  try {
+    const formDataToSend = new FormData();
 
-    setIsSending(true);
-    try {
-      const result = await sendEmail({ ...formData, attachments });
-      if (result.success) {
-        setIsSubmitted(true);
-        window.scrollTo(0, 0);
-      } else {
-        alert(`Server Error: ${result.error || "Files too large"}. Resetting cache.`);
-        clearAllAttachments();
+    // 1. Append all text fields
+    Object.entries(formData).forEach(([key, value]) => {
+      formDataToSend.append(key, value);
+    });
+    formDataToSend.append('agreed', agreed.toString());
+
+    // 2. Convert Base64 attachments back to actual Blobs
+    attachments.forEach((file, index) => {
+      const byteString = atob(file.data.split(',')[1]);
+      const mimeString = file.data.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
       }
-    } catch (err) {
-      alert("Network timeout. Please check your connection.");
-    } finally {
-      setIsSending(false);
+      const blob = new Blob([ab], { type: mimeString });
+      formDataToSend.append('files', blob, file.name); 
+    });
+
+    // 3. Send via POST to your API
+    const response = await fetch('/api/send-email', {
+      method: 'POST',
+      body: formDataToSend, // Browser automatically sets Content-Type to multipart/form-data
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      setIsSubmitted(true);
+      window.scrollTo(0, 0);
+    } else {
+      alert(`Server Error: ${result.error}`);
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Connection error. Ensure total size is under 5MB.");
+  } finally {
+    setIsSending(false);
+  }
+};
 
   if (isSubmitted) {
     return (
@@ -298,13 +344,45 @@ export default function LiaisonIntakePage() {
 				I understand that S.R.K Strategic is a consultancy and does not represent any competent authority.
 			</label>
 		</div>
-           <button 
-			disabled={isSending || isOverLimit || !agreed} 
-			type="submit" 
-			className={`w-full text-white py-6 rounded-2xl font-bold transition-all shadow-xl flex items-center justify-center gap-3 ${(!agreed || isOverLimit || isSending) ? 'bg-slate-300 cursor-not-allowed' : 'bg-slate-900 hover:bg-amber-600'}`}
-			>
-				{isSending ? "Processing..." : "Confirm & Submit Audit Request"} <Send size={18} />
-			</button>
+           <button
+  disabled={isSending || isOverLimit || !agreed} 
+  type="submit"
+    className="relative overflow-hidden w-full py-4 px-6 rounded-xl font-bold text-white transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed bg-slate-900"
+>
+  {/* PROGRESS FILL: This layer slides from left to right when isSending is true */}
+  {isSending && (
+    <div 
+      className="absolute top-0 left-0 h-full bg-amber-600 transition-all ease-out"
+      style={{ 
+        width: '100%', 
+        transitionDuration: '20000ms', // Takes 20 seconds to fill
+        opacity: 0.6 
+      }}
+    />
+  )}
+
+  {/* BUTTON TEXT: Use z-10 to keep the text on top of the progress color */}
+  <div className="relative z-10 flex items-center justify-center gap-2">
+    {isSending ? (
+      <>
+        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        <span>Uploading Case Files (5MB Limit)...</span>
+      </>
+    ) : (
+      <>
+        <Send className="w-5 h-5" />
+        <span>Submit Technical Audit Request</span>
+      </>
+    )}
+  </div>
+</button>
+
+{/* HELPER TEXT: Shows only during processing to prevent users from leaving */}
+{isSending && (
+  <p className="text-center text-xs text-slate-500 mt-2 animate-pulse">
+    Please do not refresh. Compressing and transmitting your legal documents...
+  </p>
+)}
           </form>
         </div>
       </div>

@@ -27,6 +27,7 @@ export default function LiaisonIntakePage() {
     extent: '', context: '', email: '', phone: '',
     preferredFee: '', appointmentDate: '',
   });
+  const [agreed, setAgreed] = useState(false);
 
   const MAX_TOTAL_SIZE_MB = 10;
   const BYTES_TO_MB = 1024 * 1024;
@@ -282,10 +283,28 @@ export default function LiaisonIntakePage() {
                 <input required type="datetime-local" name="appointmentDate" value={formData.appointmentDate} onChange={handleInputChange} className="w-full bg-white border-none rounded-2xl p-4 text-sm text-slate-900 font-medium" />
               </div>
             </div>
-
-            <button disabled={isSending || isOverLimit} type="submit" className={`w-full text-white py-6 rounded-2xl font-bold transition-all shadow-xl flex items-center justify-center gap-3 ${isOverLimit || isSending ? 'bg-slate-300 cursor-not-allowed' : 'bg-slate-900 hover:bg-amber-600'}`}>
-              {isSending ? "Processing Briefing..." : "Confirm & Submit Audit Request"} <Send size={18} />
-            </button>
+		<div className="flex items-start gap-3 p-4 bg-amber-50/50 rounded-2xl border border-amber-100">
+			<input 
+				type="checkbox" 
+				id="legal-agree"
+				required
+				checked={agreed}
+				onChange={(e) => setAgreed(e.target.checked)}
+				className="mt-1 h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500" 
+			/>
+			<label htmlFor="legal-agree" className="text-[11px] text-slate-600 leading-relaxed">
+				I agree to the <Link href="/terms" className="text-amber-700 font-bold underline">Terms of Engagement</Link> and 
+			<Link href="/privacy" className="text-amber-700 font-bold underline ml-1">Privacy Policy</Link>. 
+				I understand that S.R.K Strategic is a consultancy and does not represent any competent authority.
+			</label>
+		</div>
+           <button 
+			disabled={isSending || isOverLimit || !agreed} 
+			type="submit" 
+			className={`w-full text-white py-6 rounded-2xl font-bold transition-all shadow-xl flex items-center justify-center gap-3 ${(!agreed || isOverLimit || isSending) ? 'bg-slate-300 cursor-not-allowed' : 'bg-slate-900 hover:bg-amber-600'}`}
+			>
+				{isSending ? "Processing..." : "Confirm & Submit Audit Request"} <Send size={18} />
+			</button>
           </form>
         </div>
       </div>

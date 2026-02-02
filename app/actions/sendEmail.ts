@@ -81,10 +81,9 @@ export async function sendEmail(formData: any) {
       </div>
     `,
     attachments: formData.attachments ? formData.attachments.map((file: any) => ({
-      filename: file.name,
-      content: file.data.split(',')[1],
-      encoding: 'base64'
-    })) : []
+  filename: file.name,
+  content: file.content, // Use the raw buffer directly
+})) : []
   };
 
   try {
