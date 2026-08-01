@@ -1,69 +1,76 @@
 import { NextRequest, NextResponse } from 'next/server';
-import PizZip from 'pizzip';
-import Docxtemplater from 'docxtemplater';
-import fs from 'fs';
-import path from 'path';
+import { GoogleGenAI, Type } from '@google/genai';
 
 export async function POST(req: NextRequest) {
   try {
-    const { templateName, userData } = await req.json();
-    
-    // 1. Map the friendly name to your actual file system names
-    // const fileNameMap: Record<string, string> = {      "Sale Deed": "sale-deed.docx",      "Agreement of Sale": "agreement-sale.docx",       "Lease Deed": "lease-deed.docx",     };
+    const draftReq = await req.json();
 
-    //const targetFile = fileNameMap[templateName] || 'default-template.docx';
-    //const templatePath = path.resolve('./lib/templates', targetFile);
-const slugify = (text: string) => text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
-
-const targetFile = `${slugify(templateName)}.docx`;
-const templatePath = path.resolve('./lib/templates', targetFile);	
-
-    if (!fs.existsSync(templatePath)) {
-      return NextResponse.json({ error: 'Template file not found' }, { status: 404 });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: 'GEMINI_API_KEY environment variable is missing on the server.' },
+        { status: 500 }
+      );
     }
 
-    const content = fs.readFileSync(templatePath, 'binary');
+    const ai = new GoogleGenAI({ apiKey });
 
-    // 2. Initialize zip and docxtemplater
-    const zip = new PizZip(content);
-    const doc = new Docxtemplater(zip, {
-      paragraphLoop: true,
-      linebreaks: true,
+    const prompt = `
+You are an expert Senior Legal Counsel and Statutory Conveyancer. Draft a comprehensive, court-admissible legal document according to the following specifications:
+
+Legal Master Category: ${draftReq.category}
+Instrument Type: ${draftReq.documentType}
+Jurisdiction: ${draftReq.jurisdiction.city}, ${draftReq.jurisdiction.state}, ${draftReq.jurisdiction.country} (${draftReq.jurisdiction.localityType})
+Parties: ${JSON.stringify(draftReq.parties, null, 2)}
+Financial Terms: ${JSON.stringify(draftReq.financialTerms, null, 2)}
+
+REQUIREMENTS:
+1. Generate an exhaustive legal draft with Recitals (WHEREAS), Operative Clauses, Consideration, Execution & Signature Blocks.
+2. Ensure strict compliance with legal terminology of ${draftReq.jurisdiction.state}, ${draftReq.jurisdiction.country}.
+3. Format documentHtml in clean HTML with bold section titles, numbered paragraphs, and signature blocks.
+`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.6-flash',
+      contents: prompt,
+      config: {
+        maxOutputTokens: 8192,
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            documentHtml: { type: Type.STRING },
+            stampDutyGuidance: { type: Type.STRING },
+            legalRiskAssessment: {
+              type: Type.OBJECT,
+              properties: {
+                riskScore: { type: Type.STRING, enum: ['Low', 'Medium', 'High'] },
+                summary: { type: Type.STRING }
+              },
+              required: ['riskScore', 'summary']
+            }
+          },
+          required: ['title', 'documentHtml', 'stampDutyGuidance', 'legalRiskAssessment']
+        }
+      }
     });
 
-    // 3. Prepare Template Data
-    const finalTemplateData = {
-      ...userData,
-      TODAY_DATE: new Date().toLocaleDateString('en-IN'),
-    };
+    const resultJson = JSON.parse(response.text || '{}');
 
-    // 4. Render the document
-    try {
-      doc.render(finalTemplateData);
-    } catch (renderError) {
-      console.error("Docxtemplater Render Error:", renderError);
-      return NextResponse.json({ error: 'Error filling template tags' }, { status: 500 });
-    }
-
-    const buf = doc.getZip().generate({
-      type: 'nodebuffer',
-      compression: 'DEFLATE',
+    return NextResponse.json({
+      id: `draft_${Date.now()}`,
+      title: resultJson.title || draftReq.documentType,
+      documentType: draftReq.documentType,
+      jurisdictionSummary: `${draftReq.jurisdiction.city}, ${draftReq.jurisdiction.state}`,
+      documentHtml: resultJson.documentHtml || '<p>Draft error</p>',
+      stampDutyGuidance: resultJson.stampDutyGuidance || '',
+      legalRiskAssessment: resultJson.legalRiskAssessment || { riskScore: 'Low', summary: '' }
     });
-
-    // 5. Return the file as a downloadable blob
-    // FIXED: Wrapped 'buf' (Node Buffer) in 'new Uint8Array()' for Next.js 16 compatibility
-    const safeFileName = (templateName || 'Document').replace(/\s+/g, '_');
-    
-    return new NextResponse(new Uint8Array(buf), {
-      status: 200,
-      headers: {
-        'Content-Disposition': `attachment; filename="${safeFileName}_Draft.docx"`,
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      },
-    });
-
-  } catch (error) {
-    console.error("Global API Error:", error);
-    return NextResponse.json({ error: 'Failed to generate document' }, { status: 500 });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message || 'Failed to generate legal document.' },
+      { status: 500 }
+    );
   }
 }
