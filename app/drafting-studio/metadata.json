@@ -1,0 +1,6 @@
+{
+  "name": "Drafting Studio",
+  "description": "AI-powered legal document and contract drafting studio supporting location-based laws, multi-party details, property boundaries, consideration breakdown, and Word download.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
